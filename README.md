@@ -12,9 +12,9 @@
     
     
 - 데이터 수집의 계획 및 주기 작성
-    - instagram 로그인 -> 검색어 입력 -> 게시물 갯수가 가장 많은 검색결과 클릭 -> 최근게시물부터 내부의 해시태그 크롤링
+    - instagram 로그인 -> 검색어 입력 -> 게시물 갯수가 가장 많은 검색결과 클릭 -> 최근게시물부터 게시물 내용 중 해시태그만 크롤링
     
-    - selenium과 TextResponse 사용
+    - selenium과 scrapy의 TextResponse 함수 사용
         - selenium : 키워드 검색, 게시물 로딩, 스크롤내리기 
         - scrapy의 TextResponse  : 로딩된 게시물들의 url 가져오기
         
@@ -29,14 +29,22 @@
         
         
     
-- 크롤링 코드 작동방식
+- 크롤링 함수 구성
     - class 내부의 함수들 : 로그인함수, 검색어/검색결과 클릭함수, 클롤링함수, element 렌더링 여부 확인함수
-    - 크롤링 함수 : initial_crawling(), second_crawling(), repeat_crawling()
+    - 크롤링 수행하는 함수들 
+        - initial_crawling() : 최초 1번만 호출
+        - second_crawling() : 최초 1번만 호출
+        - repeat_crawling() : 반복 호출
     - crawling_start 함수 : class를 인스턴스화 시켜서 크롤링을 수행하고, 데이터프레임을 리턴한다
     
     
 
-- 크롤링 시작 함수 : crawling_start( 검색키워드, 마지막 크롤링함수의 반복 횟수, mongdb에의 저장여부 )
+- 크롤링 시작 :
+```
+from insta_crawling import crawling_start 
+
+crawling_start( 검색키워드, 마지막 크롤링함수의 반복 횟수, mongdb에의 저장여부 )
+```
 
 
     
@@ -47,6 +55,7 @@
     
     
 - 프로젝트 회고
+    - 크롤링 함수들 3개를 하나로 통합하기
     - 발생가능한 에러 예상하기
         - ex) 처음 인스타그램 웹페이지에 들어갔을때, 다른종류의 알림창이 뜨는 경우 대처법
         
