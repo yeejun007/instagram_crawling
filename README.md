@@ -61,7 +61,7 @@ crawling_start( 검색키워드, 마지막 크롤링함수의 반복 횟수, mon
         - ex) 셀렉터 종류에따라 다른 방식으로 에러가 발생
         
     - scrapy로 크롤링 해보기
-    - scrapy를 사용할때, selenium의 webdriver만 사용해서 크롤링 한다면 scrapy의 비동기적 작동이 문제없이 돌아갈 것인가?
+    - 서버에서 돌아가도록 headless로 만들기
     
     
     
