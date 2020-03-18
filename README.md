@@ -43,7 +43,8 @@
         - second_crawling() : 최초 1번만 호출
         - repeat_crawling() : 반복 호출
         
-    - crawling_start 함수 : class를 인스턴스화 시켜서 크롤링을 수행하고, 데이터프레임을 리턴한다
+    - 크롤링 시작 
+        - crawling_start() : class를 인스턴스화 시켜서 크롤링을 수행하고, 데이터프레임을 리턴한다
     
     
 
