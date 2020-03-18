@@ -39,7 +39,7 @@
     
     
 
-- 크롤링 실행 코드 :
+- 크롤링 실행 코드 
 ```python
 from insta_crawling import crawling_start 
 
