@@ -40,7 +40,7 @@
     
 
 - 크롤링 시작 :
-```
+```python
 from insta_crawling import crawling_start 
 
 crawling_start( 검색키워드, 마지막 크롤링함수의 반복 횟수, mongdb에의 저장여부 )
