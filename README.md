@@ -30,11 +30,19 @@
         
     
 - 크롤링 함수 구성
-    - class 내부의 함수들 : 로그인함수, 검색어/검색결과 클릭함수, 클롤링함수, element 렌더링 여부 확인함수
-    - 크롤링 수행하는 함수들 
+    - class 내부의 함수들 
+        - check_response() : element의 렌더링 여부 확인 
+        - login() 
+        - input_keyword()
+        - initial_crawling()
+        - second_crawling()
+        - repeat_crawling()
+        
+    - class 내부의 크롤링 수행하는 함수들 
         - initial_crawling() : 최초 1번만 호출
         - second_crawling() : 최초 1번만 호출
         - repeat_crawling() : 반복 호출
+        
     - crawling_start 함수 : class를 인스턴스화 시켜서 크롤링을 수행하고, 데이터프레임을 리턴한다
     
     
