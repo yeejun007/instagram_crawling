@@ -10,8 +10,6 @@ import re
 
 class instagram_crawling():
     
-    driver = ""
-    
     def __init__(self):
         login_url = "https://www.instagram.com/accounts/login/?source=auth_switcher"
         self.driver = webdriver.Chrome()
@@ -23,23 +21,33 @@ class instagram_crawling():
         try:
             if func == 'login':
                 result = webdriver.find_element_by_css_selector(selector)
+                
             elif func == 'input_keyword':
+                if time.time() - start_time > 10:
+                    print("=========== no response in function : {} ===========".format(func))
+                    return False
+            
                 result = webdriver.find_elements_by_css_selector(selector)
                 while len(result) == 0:
-                    return self.check_response(self.driver, selector, func, start_time)
+                    return self.check_response(webdriver, selector, func, start_time)
+                
             elif func == 'initial_crawling':
+                if time.time() - start_time > 10:
+                    print("=========== no response in function : {} ===========".format(func))
+                    return False
+            
                 result = webdriver.find_elements_by_css_selector(selector)
                 while len(result) != 8:
-                    return self.check_response(self.driver, selector, func, start_time)
+                    return self.check_response(webdriver, selector, func, start_time)
                 
             return result
         
         except Exception:
-            # 10초 기다리고 종료
+            # func = 'login'인 경우 element를 찾지 못하면 에러처리로 들어온다
             if time.time() - start_time > 10:
                 print("=========== no response in function : {} ===========".format(func))
                 return False
-            return self.check_response(self.driver, selector, func, start_time)
+            return self.check_response(webdriver, selector, func, start_time)
         
             
     
@@ -57,11 +65,11 @@ class instagram_crawling():
         # 알림설정 하라는 modal창이 뜨는경우 '나중에 하기'를 클릭하는 코드
         start_time = time.time()
         alert_modal = self.check_response(self.driver, 'body > div.RnEpo.Yx5HN > div > div', 'login', start_time)
-        if alert_modal:
-            self.driver.find_element_by_css_selector('body > div.RnEpo.Yx5HN > div > div > div.mt3GC > button.aOOlW.HoLwm').click()
-        else:
+        if alert_modal == False:
             print('================ login error ================')
             self.driver.quit()
+        
+        self.driver.find_element_by_css_selector('body > div.RnEpo.Yx5HN > div > div > div.mt3GC > button.aOOlW.HoLwm').click()
 
 
 
@@ -74,7 +82,9 @@ class instagram_crawling():
         # 키워드 입력하고, 키워드에 대한 검색 리스트가 뜨는데 걸리는 시간만큼 기다려준다
         start_time = time.time()
         search_list = self.check_response(self.driver, '#react-root > section > nav > div._8MQSO.Cx7Bp > div > div > div.LWmhU._0aCwM > div:nth-child(4) > div.drKGC > div > a', 'input_keyword', start_time)
-        
+        if search_list == False:
+            print('================ input_keyword rendering error ================')
+            self.driver.quit()
         
         # 서칭된 a 엘리먼트들 중에 게시물 갯수가 가장 많은 a 엘리먼트를 뽑는다
         number_list = []
@@ -99,7 +109,10 @@ class instagram_crawling():
         
         # 검색 키워드를 클릭 한 이후 게시물 렌더링이 완료되었는지 확인
         start_time = time.time()
-        self.check_response(self.driver, '#react-root > section > main > article > div:nth-child(3) > div > div', 'initial_crawling', start_time)
+        result = self.check_response(self.driver, '#react-root > section > main > article > div:nth-child(3) > div > div', 'initial_crawling', start_time)
+        if result == False:
+            print('================ initial_crawling rendering error ================')
+            self.driver.quit()
         
         urls = self.driver.find_elements_by_xpath('//*[@id="react-root"]/section/main/article/div[2]/div/div/div/a')
         urls = [url.get_attribute("href") for url in urls]
