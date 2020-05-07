@@ -4,9 +4,16 @@ import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from scrapy.http import TextResponse
+import urllib.request
+import urllib
 import getpass
 import time
 import re
+from google.cloud import vision
+from google.cloud.vision import types
+import os
+import io
+from os import walk
 
 
 class instagram_crawling():
@@ -14,6 +21,7 @@ class instagram_crawling():
     def __init__(self, headless=False):
         chrome_options = Options()
         chrome_options.add_argument("--window-size=1600,1080")
+        
         if headless == True:
             chrome_options.add_argument('headless')
         
@@ -76,6 +84,7 @@ class instagram_crawling():
         alert_modal = self.check_response(self.driver, 'body > div.RnEpo.Yx5HN > div > div', 'login', start_time)
         if alert_modal == False:
             try:
+                # 여기서 에러가 나서 except문으로 들어갔다면, 로그인은 성공했지만 알림설정 창이 안뜬거임
                 wrong_access = webdriver.find_element_by_css_selectortor('#slfErrorAlert')
                 
             except Exception:
@@ -226,7 +235,7 @@ class instagram_crawling():
 # instagram_crawling 클래스를 이용해서 해시태그를 크롤링하고 전체 데이터프레임을 리턴한다
 def crawling_start(keyword, repeat_num, headless=False, mongo_save=0):
     """
-    3 input arguments
+    3 input arguments.
     keyword: 
         검색어(주제)
     repeat_num: 
@@ -239,7 +248,6 @@ def crawling_start(keyword, repeat_num, headless=False, mongo_save=0):
         저장 = 1
         저장 안함 = 0
     """
-    
     
     keyword = keyword
     num = repeat_num
@@ -278,4 +286,70 @@ def crawling_start(keyword, repeat_num, headless=False, mongo_save=0):
             collection.insert(mongo_df_list[i])
     
     return result_df.drop(columns=['time'])
+
+
+
+class spam_filter():
+    
+    def __init__(self, df):
+        self.df = df 
+    
+    def make_img_files(self):
+        if not os.path.exists('./insta_img'):
+            os.mkdir('insta_img')
+
+        for index, row in self.df.iterrows():
+            urllib.request.urlretrieve(row['image_url'], './insta_img/insta_img_{:02d}.png'.format(index))
+    
+    def spam_check(self):
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/song-yeejun/Desktop/Fastcampus/dss01/google_vision_key/vision_key.json'
+        client = vision.ImageAnnotatorClient()
+
+        file_list = []
+        for (dirpath, dirnames, filenames) in walk('./insta_img'):
+            file_list.extend(filenames)
+        file_list.sort()
+        file_list
+
+        img_words = []
+        for index, each_file in enumerate(file_list):
+            with io.open('./insta_img/{}'.format(each_file), 'rb') as image_file:
+                content = image_file.read()
+            image = vision.types.Image(content=content)
+            response = client.text_detection(image=image)
+            texts = response.text_annotations
+
+            if len(texts) > 0:
+                img_words.append(('{:02}'.format(index), texts[0].description))
+            else:
+                img_words.append(('{:02}'.format(index), ""))
+
+        return img_words
+    
+
+def filtering_start(df):
+    """
+    1 input argument.
+    df : The result dataframe of crawling_start function that included insta_crawling package.
+        ex) df = crawling_start()
+            filtering_start(df)
+    """
+    
+    spam_words = ['성인출장삼', '섹타임 출장잡', '예약카톡', '이쁜이들 항시대기중!!!',
+                  '성인', '출장의사', '19금 성인', '전국출장', '러브출장샵', '상담카톡', '섹타 임', '출장마사지']
+    
+    insta_spam = spam_filter(df)
+    insta_spam.make_img_files()
+    img_words_list = insta_spam.spam_check()
+    spam_index = []
+    
+    for index, words in img_words_list:
+        check = [each_word in spam_words for each_word in words.split('\n')]
+        if True in check:
+            spam_index.append(int(index))
+    
+    return (df.drop(index=spam_index).reset_index().drop(columns=['index']), spam_index)
+
+
+
     
